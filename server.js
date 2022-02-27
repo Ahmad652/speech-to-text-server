@@ -1,9 +1,13 @@
 const app = require("express")();
 const cors = require("cors");
+const PORT = process.env.PORT || 3000;
+const INDEX = '/index.html';
+
 app.use(cors());
+app.use((req, res) => res.sendFile(INDEX, { root: __dirname }));
+
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
-const PORT = 3000;
 const sockets = {};
 io.on("connection", (socket) => {
   console.log("new client connected");
@@ -15,10 +19,15 @@ io.on("connection", (socket) => {
     app.set("sockets", sockets);
   });
 
-  socket.on("uploadProgress",(dummyText)=>{
+  socket.on("uploadProgress", (dummyText) => {
     console.log(dummyText);
     socket.emit("progressRce", "received");
-  })
+  });
+  socket.on("time", (dummyText) => {
+    console.log(dummyText);
+    socket.emit("progressRce", "received");
+  });
+
   // socket.emit("connection", null);
   // socket.on("connect", (data) => {
   //   console.log(data);
@@ -27,6 +36,7 @@ io.on("connection", (socket) => {
   //   console.log("user disconnected");
   // });
 });
+setInterval(() => io.emit("time", new Date().toTimeString()), 1000);
 app.set("io", io);
 server.listen(PORT, () => {
   console.log(`listening on *:${PORT}`);
